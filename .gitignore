@@ -1,0 +1,5 @@
+# Ignore local data directory (large datasets not for version control)
+data/
+
+# macOS Finder metadata
+.DS_Store
