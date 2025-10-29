@@ -52,7 +52,8 @@ def main() -> int:
         print("/data/raw does not exist. Did you run fetch_snap.sh?", file=sys.stderr)
         return 1
 
-    inputs = sorted([p for p in raw_dir.iterdir() if p.is_file()])
+    # Only process extracted text files
+    inputs = sorted([p for p in raw_dir.iterdir() if p.is_file() and p.suffix == ".txt"])
     if not inputs:
         print("No input files found in /data/raw", file=sys.stderr)
         return 1

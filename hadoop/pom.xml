@@ -7,7 +7,8 @@
   <version>0.1.0-SNAPSHOT</version>
   <name>Graph Degree - Hadoop</name>
   <properties>
-    <maven.compiler.release>21</maven.compiler.release>
+    <!-- Hadoop images run Java 8; compile with release 8 for compatibility -->
+    <maven.compiler.release>8</maven.compiler.release>
     <hadoop.version>3.3.6</hadoop.version>
   </properties>
   <dependencies>

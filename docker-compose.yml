@@ -12,6 +12,9 @@ services:
       - CLUSTER_NAME=hadoop-cluster
     volumes:
       - ./data:/data
+      - ./hadoop:/project/hadoop
+      - ./results:/results
+      - ./scripts:/data/scripts
     networks:
       - hadoop
 

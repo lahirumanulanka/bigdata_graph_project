@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""
+Plot in-degree distributions (degree vs count) on linear and log-log scales.
+
+Reads outputs from:
+- /results/spark/<dataset>/distribution/part-*
+- /results/hadoop/<dataset>/distribution/part-*
+
+Writes PNG plots to /results/plots.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import matplotlib.pyplot as plt
+
+
+# Use /data mounts to avoid permission issues on /results in some Docker/Windows setups
+RESULTS = Path("/data/results")
+PLOTS = Path("/data/plots")
+
+
+def read_tsv_dir(dir_path: Path) -> List[Tuple[int, int]]:
+    data: Dict[int, int] = {}
+    if not dir_path.exists():
+        return []
+    for part in sorted(dir_path.glob("part-*")):
+        with part.open("r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                s = line.strip()
+                if not s:
+                    continue
+                kv = s.split()
+                if len(kv) < 2:
+                    continue
+                try:
+                    k = int(kv[0])
+                    v = int(kv[1])
+                except ValueError:
+                    continue
+                data[k] = data.get(k, 0) + v
+    items = sorted(data.items())
+    return items
+
+
+def plot_dataset(name: str) -> None:
+    spark_dir = RESULTS / "spark" / name / "distribution"
+    hadoop_dir = RESULTS / "hadoop" / name / "distribution"
+    spark_data = read_tsv_dir(spark_dir)
+    hadoop_data = read_tsv_dir(hadoop_dir)
+    if not spark_data and not hadoop_data:
+        print(f"No data for {name}")
+        return
+
+    PLOTS.mkdir(parents=True, exist_ok=True)
+
+    def _plot(loglog: bool, suffix: str):
+        plt.figure(figsize=(7, 5))
+        if spark_data:
+            x, y = zip(*spark_data)
+            plt.scatter(x, y, s=10, label="Spark", alpha=0.7)
+        if hadoop_data:
+            x, y = zip(*hadoop_data)
+            plt.scatter(x, y, s=10, label="Hadoop", alpha=0.7)
+        if loglog:
+            plt.xscale("log")
+            plt.yscale("log")
+        plt.xlabel("In-degree")
+        plt.ylabel("#Nodes")
+        plt.title(f"In-degree distribution: {name}{' (log-log)' if loglog else ''}")
+        plt.legend()
+        plt.tight_layout()
+        out = PLOTS / f"{name}{suffix}.png"
+        plt.savefig(out)
+        plt.close()
+        print(f"Wrote {out}")
+
+    _plot(False, "")
+    _plot(True, "_loglog")
+
+
+def main(argv: list[str]) -> int:
+    datasets = [
+        "soc-Pokec-relationships",
+        "email-EuAll",
+        "web-BerkStan",
+    ]
+    for d in datasets:
+        plot_dataset(d)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
