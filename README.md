@@ -7,6 +7,8 @@ This project computes node in-degree and the in-degree distribution on large rea
 
 It includes data acquisition, cleaning, batch jobs, experiment runners, basic metrics capture, and plotting.
 
+For a focused Hadoop vs Spark comparison (correctness, performance, and architecture), see `docs/README.md`.
+
 ## What’s included
 
 Project layout (key paths):
@@ -15,10 +17,14 @@ Project layout (key paths):
 - `scripts/`
   - `fetch_snap.sh` — Download SNAP datasets safely; robust to 404/HTML errors
   - `clean_snap.py` — Normalize raw files to simple "src dst" edge lists in `/data/cleaned`
-  - `run_spark_experiments.sh` — Run PySpark indegree + distribution on 3 datasets, capture timings
+  - `with_metrics.sh` — Wrapper to run any command while collecting time and dstat metrics
+  - `run_spark_experiments.sh` — Run PySpark indegree + distribution on 3 datasets, capture timings and dstat
   - `build_hadoop.sh` — Build the MapReduce JAR inside Hadoop NameNode
-  - `run_hadoop_experiments.sh` — Run MR indegree + distribution on 3 datasets via HDFS/YARN
+  - `run_hadoop_experiments.sh` — Run MR indegree + distribution on 3 datasets via HDFS/YARN with metrics
+  - `aggregate_metrics.py` — Parse time/dstat outputs into a unified CSV summary
   - `plot_distributions.py` — Create linear and log-log plots comparing outputs
+  - `plot_metrics.py` — Plot execution time, memory, CPU, disk, and network comparisons
+  - `run_all.sh` — Orchestrate everything end-to-end with metrics and plots
 - `spark/indegree_spark.py` — PySpark job to compute per-node indegree and degree distribution
 - `hadoop/src/main/java/com/example/degree/`
   - `InDegreeMapper.java`, `InDegreeReducer.java`, `InDegreeDriver.java`
@@ -27,11 +33,9 @@ Project layout (key paths):
   - `raw/` — raw SNAP downloads (txt)
   - `cleaned/` — normalized edge lists
   - `results/spark/…` — Spark outputs (indegree, distribution)
-  - `metrics/` — simple timing outputs for Spark runs
-- `results/` (host):
-  - `hadoop/…` — Hadoop outputs fetched from HDFS
-  - `metrics/` — timing outputs for Hadoop jobs (if permissions allow)
-  - `plots/` — if plotting to host; we default to `/data/plots` inside container for fewer permission issues
+  - `results/hadoop/…` — Hadoop outputs (local mode or copied from HDFS)
+  - `results/plots/` — all generated PNG plots (distributions and metrics)
+  - `metrics/` — structured performance metrics for Spark and Hadoop
 
 Web UIs (once containers are up):
 
@@ -49,7 +53,7 @@ Web UIs (once containers are up):
   - `./scripts -> /data/scripts` in Spark/Hadoop to run bash/python tools
   - `./spark -> /spark` to run PySpark job files
   - `./hadoop -> /project/hadoop` in NameNode to build the JAR in-place
-  - `./results -> /results` available to Hadoop for copying outputs from HDFS; for Spark we prefer `/data/results` for fewer permission issues on Windows
+  - `./data -> /data` (all datasets, metrics, results and plots live here to avoid Windows permission issues)
 
 2) Data ingestion and cleaning (SNAP)
 
@@ -146,7 +150,7 @@ docker exec -it spark-master bash -lc "sed -i 's/\r$//' /data/scripts/run_spark_
 Outputs:
 
 - Per dataset under `data\results\spark\<dataset>\{indegree,distribution}`
-- Timings under `data\metrics\spark_<dataset>.time`
+- Timings under `data\metrics\spark\<dataset>\job.*`
 
 Option B: single dataset example
 
@@ -174,8 +178,8 @@ docker exec -it namenode bash -lc "sed -i 's/\r$//' /data/scripts/run_hadoop_exp
 
 Outputs:
 
-- Fetched to host under `results\hadoop\<dataset>\{indegree,distribution}`
-- Timings under `results\metrics\hadoop_<dataset>_{indegree,dist}.time`
+- Written under `data\results\hadoop\<dataset>\{indegree,distribution}`
+- Timings under `data\metrics\hadoop\<dataset>\{indegree,distribution}.*`
 
 7) Plot in-degree distributions
 
@@ -184,14 +188,66 @@ Outputs:
 docker exec -u 0 -it spark-master bash -lc "apt-get update && apt-get install -y python3-matplotlib && python3 /data/scripts/plot_distributions.py"
 ```
 
-Plots go to `data\plots\<dataset>.png` and `data\plots\<dataset>_loglog.png`.
+Plots go to `data\results\plots\<dataset>.png` and `data\results\plots\<dataset>_loglog.png`.
+
+## Performance metrics (execution time, memory, CPU, disk I/O, network)
+
+The project now records and analyzes key performance metrics for both Apache Spark and Apache Hadoop (MapReduce).
+
+What is collected per run (when tools are available in the container):
+
+- Execution time: from GNU `/usr/bin/time -v` (elapsed seconds)
+- Memory usage: peak Max RSS (kB) from `/usr/bin/time -v`
+- CPU utilization: average CPU usage from `dstat` (system-wide)
+- Disk I/O: average read/write throughput from `dstat`
+- Network overhead: average recv/send throughput from `dstat`
+
+Where metrics are stored:
+
+- Spark: `data/metrics/spark/<dataset>/job.time`, `job.dstat.csv`, `job.status`
+- Hadoop: `data/metrics/hadoop/<dataset>/{indegree,distribution}.time`, `.dstat.csv`, `.status`
+- Aggregated summary: `data/metrics/summary.csv`
+
+One-shot end-to-end run (recommended):
+
+```powershell
+# From the project root
+./scripts/run_all.sh
+```
+
+What `run_all.sh` does:
+
+- Ensures containers are up
+- Installs `dstat` and `python3-matplotlib` in containers if missing
+- Fetches and cleans datasets
+- Runs Spark and Hadoop jobs wrapped by `with_metrics.sh`
+- Generates distribution plots and metrics summary/plots
+
+Manual steps if you prefer finer control:
+
+```powershell
+# Inside spark-master
+docker exec -u 0 spark-master bash -lc "apt-get update && apt-get install -y dstat python3-matplotlib"
+docker exec spark-master bash -lc "bash /data/scripts/run_spark_experiments.sh"
+docker exec spark-master bash -lc "python3 /data/scripts/aggregate_metrics.py && python3 /data/scripts/plot_metrics.py"
+
+# Inside namenode for Hadoop
+docker exec -u 0 namenode bash -lc "apt-get update && apt-get install -y dstat"
+docker exec namenode bash -lc "bash /data/scripts/build_hadoop.sh && bash /data/scripts/run_hadoop_experiments.sh"
+```
+
+Outputs:
+
+- Distribution plots: `data/results/plots/<dataset>.png` and `data/results/plots/<dataset>_loglog.png`
+- Metrics summary CSV: `data/metrics/summary.csv`
+- Metrics plots: `data/results/plots/metrics_*.png`
 
 ## Interpreting and comparing results
 
 1) Correctness of results
 
 - For each dataset, compare Spark vs Hadoop degree distributions:
-  - Files: Spark `/data/results/spark/<dataset>/distribution/part-*` vs Hadoop `results/hadoop/<dataset>/distribution/part-*`
+  - Files: Spark `/data/results/spark/<dataset>/distribution/part-*` vs Hadoop `/data/results/hadoop/<dataset>/distribution/part-*`
   - After plotting, distributions for the same dataset should closely overlay (allowing for ordering/partitioning differences). Any large discrepancies usually signal input differences or cleaning issues.
 
 2) Performance metrics collected
@@ -228,8 +284,7 @@ Plots go to `data\plots\<dataset>.png` and `data\plots\<dataset>_loglog.png`.
   - matplotlib for plotting: `apt-get install -y python3-matplotlib`
 - SNAP download hiccups:
   - Some URLs (e.g., Pokec) may be 404 or blocked; the fetch script will warn and continue.
-- Permissions on `/results` (Windows bind mounts):
-  - We direct Spark outputs to `/data/results/...` to avoid permission errors.
+ - Permissions: All outputs and plots are standardized under `/data/results/...` for consistent, writable paths on Windows bind mounts.
 - YARN services show as "unhealthy" initially:
   - They often stabilize; ensure NameNode and DataNode are healthy.
 

@@ -9,10 +9,10 @@ export PATH="$SPARK_HOME/bin:$PATH"
 
 INPUT_DIR=/data/cleaned
 OUT_BASE=/data/results/spark
-METRICS=/data/metrics
+METRICS_BASE=/data/metrics/spark
 APP=/spark/indegree_spark.py
 
-mkdir -p "$OUT_BASE" "$METRICS"
+mkdir -p "$OUT_BASE" "$METRICS_BASE"
 
 DATASETS=(
   email-EuAll
@@ -20,8 +20,7 @@ DATASETS=(
   soc-LiveJournal1
 )
 
-TIME_BIN=""
-if command -v /usr/bin/time >/dev/null 2>&1; then TIME_BIN="/usr/bin/time -v"; fi
+WITH_METRICS=/data/scripts/with_metrics.sh
 
 for base in "${DATASETS[@]}"; do
   input="$INPUT_DIR/${base}.edges"
@@ -32,15 +31,18 @@ for base in "${DATASETS[@]}"; do
   out="$OUT_BASE/$base"
   rm -rf "$out"
   echo "[run] Spark: $base"
-  if [[ -n "$TIME_BIN" ]]; then
-    $TIME_BIN spark-submit "$APP" "$input" "$out" 2>"$METRICS/spark_${base}.time" | tee "/dev/null"
+  mdir="$METRICS_BASE/$base"
+  mkdir -p "$mdir"
+  if [[ -x "$WITH_METRICS" ]]; then
+    bash "$WITH_METRICS" "$mdir" job -- spark-submit "$APP" "$input" "$out"
   else
     # Fallback simple timing
     start=$(date +%s)
     spark-submit "$APP" "$input" "$out" | tee "/dev/null"
     end=$(date +%s)
     dur=$((end-start))
-    echo "elapsed_seconds: $dur" >"$METRICS/spark_${base}.time"
+    echo "elapsed_seconds: $dur" >"$mdir/job.time"
+    echo "0" >"$mdir/job.status"
   fi
 done
 

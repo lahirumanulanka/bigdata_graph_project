@@ -1,6 +1,7 @@
 # Datasets and outputs
 # (primary request)
-data/
+raw/
+cleaned/
 results/
 
 # Python

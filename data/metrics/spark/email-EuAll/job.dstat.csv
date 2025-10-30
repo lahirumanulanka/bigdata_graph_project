@@ -1,0 +1,6 @@
+"Dstat 0.8.0 CSV output"
+"Author:","Dag Wieers <dag@wieers.com>",,,,"URL:","http://dag.wieers.com/home-made/dstat/"
+"Host:","d75345d54402",,,,"User:","spark"
+"Cmdline:","dstat --time --cpu --mem --io --net --output /data/metrics/spark/email-EuAll/job.dstat.csv 1",,,,"Date:","30 Oct 2025 09:12:44 UTC"
+"system","total cpu usage",,,,,"memory usage",,,,"io/total",,"net/total",
+"time","usr","sys","idl","wai","stl","used","free","buff","cach","read","writ","recv","send"

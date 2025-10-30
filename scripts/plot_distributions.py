@@ -17,9 +17,9 @@ from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 
 
-# Use /data mounts to avoid permission issues on /results in some Docker/Windows setups
+# Use /data/results for both inputs and plots to ensure writable mounts for the spark user
 RESULTS = Path("/data/results")
-PLOTS = Path("/data/plots")
+PLOTS = Path("/data/results/plots")
 
 
 def read_tsv_dir(dir_path: Path) -> List[Tuple[int, int]]:
@@ -45,11 +45,32 @@ def read_tsv_dir(dir_path: Path) -> List[Tuple[int, int]]:
     return items
 
 
+def _find_spark_dist_dir(dataset: str) -> Path:
+    """Return the Spark distribution directory for a dataset.
+    If exact match is missing, try a prefix match like soc-LiveJournal1_*.
+    """
+    exact = RESULTS / "spark" / dataset / "distribution"
+    if exact.exists():
+        return exact
+    # Fallback: any directory starting with dataset
+    spark_base = RESULTS / "spark"
+    if spark_base.exists():
+        for d in sorted(spark_base.iterdir()):
+            if d.is_dir() and d.name.startswith(dataset):
+                cand = d / "distribution"
+                if cand.exists():
+                    return cand
+    return exact
+
+
 def plot_dataset(name: str) -> None:
-    spark_dir = RESULTS / "spark" / name / "distribution"
-    hadoop_dir = RESULTS / "hadoop" / name / "distribution"
+    spark_dir = _find_spark_dist_dir(name)
+    # Hadoop distributions (standardized under /data/results/hadoop)
+    hadoop_dir1 = RESULTS / "hadoop" / name / "distribution"
+    # Legacy fallback when outputs were under /results/hadoop on host
+    hadoop_dir2 = Path("/results/hadoop") / name / "distribution"
     spark_data = read_tsv_dir(spark_dir)
-    hadoop_data = read_tsv_dir(hadoop_dir)
+    hadoop_data = read_tsv_dir(hadoop_dir1) or read_tsv_dir(hadoop_dir2)
     if not spark_data and not hadoop_data:
         print(f"No data for {name}")
         return
@@ -86,6 +107,7 @@ def main(argv: list[str]) -> int:
         "soc-Pokec-relationships",
         "email-EuAll",
         "web-BerkStan",
+        "soc-LiveJournal1",
     ]
     for d in datasets:
         plot_dataset(d)
