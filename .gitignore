@@ -1,5 +1,34 @@
-# Ignore local data directory (large datasets not for version control)
-data/
+# Datasets and outputs
+# (primary request)
+raw/
+cleaned/
+results/
 
-# macOS Finder metadata
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+ENV/
+
+# Java/Maven
+hadoop/target/
+*.class
+
+# Logs
+*.log
+
+# IDEs and editors
+.vscode/
+*.code-workspace
+.idea/
+*.iml
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local

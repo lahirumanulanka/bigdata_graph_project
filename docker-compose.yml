@@ -12,6 +12,9 @@ services:
       - CLUSTER_NAME=hadoop-cluster
     volumes:
       - ./data:/data
+      - ./hadoop:/project/hadoop
+      - ./results:/results
+      - ./scripts:/data/scripts
     networks:
       - hadoop
 
@@ -53,10 +56,12 @@ services:
       - "8080:8080"
     volumes:
       - ./data:/data
+      - ./scripts:/data/scripts
       - ./spark:/spark
       - ./results:/results
     networks:
       - hadoop
+    command: ["/bin/bash", "-lc", "/opt/spark/sbin/start-master.sh && tail -f /dev/null"]
 
   spark-worker:
     image: apache/spark:3.5.1
@@ -68,10 +73,12 @@ services:
       - spark-master
     volumes:
       - ./data:/data
+      - ./scripts:/data/scripts
       - ./spark:/spark
       - ./results:/results
     networks:
       - hadoop
+    command: ["/bin/bash", "-lc", "/opt/spark/sbin/start-worker.sh spark://spark-master:7077 && tail -f /dev/null"]
 
 networks:
   hadoop:
