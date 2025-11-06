@@ -1,0 +1,24 @@
+{
+  "system": "spark_opt",
+  "dataset": "email-EuAll",
+  "start_epoch": 1762417577.1602437,
+  "end_epoch": 1762417579.2279353,
+  "elapsed_sec": 2.0676913000643253,
+  "avg_cpu_percent": null,
+  "peak_cpu_percent": 61.2,
+  "max_mem_used_mb": 14535.07421875,
+  "disk_read_delta_bytes": 0,
+  "disk_write_delta_bytes": 4277248,
+  "net_sent_delta_bytes": 109,
+  "net_recv_delta_bytes": 356,
+  "samples": 3,
+  "cmd": [
+    "powershell.exe",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    "scripts/spark/run_spark_job.ps1",
+    "-Dataset",
+    "email-EuAll"
+  ]
+}

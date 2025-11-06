@@ -1,0 +1,24 @@
+{
+  "system": "hadoop",
+  "dataset": "soc-LiveJournal1",
+  "start_epoch": 1762412896.1395214,
+  "end_epoch": 1762412984.124337,
+  "elapsed_sec": 87.98481519985944,
+  "avg_cpu_percent": null,
+  "peak_cpu_percent": 67.4,
+  "max_mem_used_mb": 15028.4921875,
+  "disk_read_delta_bytes": 24886272,
+  "disk_write_delta_bytes": 99377152,
+  "net_sent_delta_bytes": 214271,
+  "net_recv_delta_bytes": 358140,
+  "samples": 88,
+  "cmd": [
+    "powershell.exe",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    "scripts/hadoop/run_hadoop_job.ps1",
+    "-Dataset",
+    "soc-LiveJournal1"
+  ]
+}

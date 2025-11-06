@@ -1,0 +1,24 @@
+{
+  "system": "spark",
+  "dataset": "web-BerkStan",
+  "start_epoch": 1762412769.2051287,
+  "end_epoch": 1762412788.5040364,
+  "elapsed_sec": 19.298907299991697,
+  "avg_cpu_percent": null,
+  "peak_cpu_percent": 89.7,
+  "max_mem_used_mb": 14802.3515625,
+  "disk_read_delta_bytes": 2568704,
+  "disk_write_delta_bytes": 19174912,
+  "net_sent_delta_bytes": 98700,
+  "net_recv_delta_bytes": 222252,
+  "samples": 20,
+  "cmd": [
+    "powershell.exe",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    "scripts/spark/run_spark_job.ps1",
+    "-Dataset",
+    "web-BerkStan"
+  ]
+}

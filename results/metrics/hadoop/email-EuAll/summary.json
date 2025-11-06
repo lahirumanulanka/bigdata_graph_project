@@ -1,0 +1,24 @@
+{
+  "system": "hadoop",
+  "dataset": "email-EuAll",
+  "start_epoch": 1762412884.307063,
+  "end_epoch": 1762412886.3483043,
+  "elapsed_sec": 2.0412408001720905,
+  "avg_cpu_percent": null,
+  "peak_cpu_percent": 42.9,
+  "max_mem_used_mb": 14329.78125,
+  "disk_read_delta_bytes": 5941248,
+  "disk_write_delta_bytes": 4038656,
+  "net_sent_delta_bytes": 176,
+  "net_recv_delta_bytes": 66,
+  "samples": 3,
+  "cmd": [
+    "powershell.exe",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    "scripts/hadoop/run_hadoop_job.ps1",
+    "-Dataset",
+    "email-EuAll"
+  ]
+}

@@ -1,8 +1,6 @@
 # Datasets and outputs
 # (primary request)
 raw/
-cleaned/
-results/
 
 # Python
 __pycache__/
