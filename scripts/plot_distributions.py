@@ -17,9 +17,9 @@ from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 
 
-# Use /data/results for both inputs and plots to ensure writable mounts for the spark user
-RESULTS = Path("/data/results")
-PLOTS = Path("/data/results/plots")
+# Prefer container mount (/data/results); fall back to local ./results
+RESULTS = Path("/data/results") if Path("/data/results").exists() else Path("results")
+PLOTS = RESULTS / "plots"
 
 
 def read_tsv_dir(dir_path: Path) -> List[Tuple[int, int]]:
@@ -100,6 +100,31 @@ def plot_dataset(name: str) -> None:
 
     _plot(False, "")
     _plot(True, "_loglog")
+
+    # Also generate Spark-only and Hadoop-only plots for clarity
+    def _plot_single(series: list[tuple[int, int]], label: str, color: str, loglog: bool, out_name: str):
+        if not series:
+            return
+        plt.figure(figsize=(7, 5))
+        x, y = zip(*series)
+        plt.scatter(x, y, s=10, label=label, alpha=0.8, color=color)
+        if loglog:
+            plt.xscale("log")
+            plt.yscale("log")
+        plt.xlabel("In-degree")
+        plt.ylabel("#Nodes")
+        plt.title(f"{label} in-degree: {name}{' (log-log)' if loglog else ''}")
+        plt.legend()
+        plt.tight_layout()
+        out = PLOTS / out_name
+        plt.savefig(out)
+        plt.close()
+        print(f"Wrote {out}")
+
+    _plot_single(spark_data, "Spark", "tab:blue", False, f"{name}_spark.png")
+    _plot_single(spark_data, "Spark", "tab:blue", True, f"{name}_spark_loglog.png")
+    _plot_single(hadoop_data, "Hadoop", "tab:orange", False, f"{name}_hadoop.png")
+    _plot_single(hadoop_data, "Hadoop", "tab:orange", True, f"{name}_hadoop_loglog.png")
 
 
 def main(argv: list[str]) -> int:

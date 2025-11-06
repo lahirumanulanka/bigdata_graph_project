@@ -1,11 +1,14 @@
 from pathlib import Path
 from collections import Counter
 
-DATA_DIR = Path("/data")
+# Prefer container mount (/data/results) if present; otherwise use local ./results
+_CONTAINER_RESULTS = Path("/data/results")
+_LOCAL_RESULTS = Path("results")
+_ROOT = _CONTAINER_RESULTS if _CONTAINER_RESULTS.exists() else _LOCAL_RESULTS
 
 RESULTS = {
-    "hadoop": DATA_DIR / "results" / "hadoop",
-    "spark": DATA_DIR / "results" / "spark",
+    "hadoop": _ROOT / "hadoop",
+    "spark": _ROOT / "spark",
 }
 
 DATASETS = [
@@ -17,14 +20,26 @@ DATASETS = [
 JOBS = ["distribution", "indegree"]
 
 
+def _read_lines(path: Path) -> list[str]:
+    with path.open("r", encoding="utf-8", errors="ignore") as f:
+        return [ln.strip() for ln in f if ln.strip()]
+
+
 def read_hadoop_output(dataset: str, job: str) -> Counter:
     base = RESULTS["hadoop"] / dataset / job
-    part = base / "part-r-00000"
-    if not part.exists():
+    # Support either a single part-r-00000 (streaming/local) or multiple part-* files
+    parts = []
+    if (base / "part-r-00000").exists():
+        parts = [base / "part-r-00000"]
+    else:
+        parts = [p for p in base.glob("part-*") if p.is_file()]
+    if not parts:
         return Counter()
-    with part.open("r", encoding="utf-8", errors="ignore") as f:
-        lines = [ln.strip() for ln in f if ln.strip()]
-    return Counter(lines)
+    cnt = Counter()
+    for p in parts:
+        for s in _read_lines(p):
+            cnt[s] += 1
+    return cnt
 
 
 def read_spark_output(dataset: str, job: str) -> Counter:
@@ -36,11 +51,8 @@ def read_spark_output(dataset: str, job: str) -> Counter:
         return Counter()
     cnt = Counter()
     for p in parts:
-        with p.open("r", encoding="utf-8", errors="ignore") as f:
-            for ln in f:
-                s = ln.strip()
-                if s:
-                    cnt[s] += 1
+        for s in _read_lines(p):
+            cnt[s] += 1
     return cnt
 
 
