@@ -25,7 +25,7 @@ import psutil
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--system", required=True, choices=["spark", "hadoop"], help="System label")
+    p.add_argument("--system", required=True, choices=["spark", "hadoop", "spark_opt", "hadoop_opt"], help="System label")
     p.add_argument("--dataset", required=True, help="Dataset name")
     p.add_argument("--out-root", default="results/metrics", help="Root output directory")
     p.add_argument("--interval", type=float, default=1.0, help="Sampling interval seconds")

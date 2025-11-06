@@ -24,7 +24,8 @@ def main() -> int:
     args = parse_args()
     indeg = Counter()
     input_path = Path(args.input)
-    with input_path.open("r", encoding="utf-8", errors="ignore") as f:
+    # Larger buffering can reduce syscall overhead on big files (optimization)
+    with input_path.open("r", encoding="utf-8", errors="ignore", buffering=4*1024*1024) as f:
         for line in f:
             s = line.strip()
             if not s or s.startswith('#'):

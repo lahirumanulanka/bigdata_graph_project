@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from pyspark.storagelevel import StorageLevel
 from pyspark.sql import SparkSession
 
 
@@ -59,6 +60,13 @@ def main() -> int:
     out_indegree = out_root / "indegree"
     out_distribution = out_root / "distribution"
 
+    # Ensure fresh outputs to avoid FileAlreadyExistsException
+    for p in (out_indegree, out_distribution):
+        if p.exists():
+            # Best-effort cleanup; Spark will recreate
+            import shutil
+            shutil.rmtree(p, ignore_errors=True)
+
     spark = (
         SparkSession.builder.appName(f"indegree_distribution:{dataset}")
         .config("spark.ui.showConsoleProgress", "false")
@@ -68,7 +76,9 @@ def main() -> int:
     sc = spark.sparkContext
 
     # Read as text and extract destination node (v) from edge u v
-    lines = sc.textFile(str(input_path))
+    # Increase partitions for large files to improve parallelism in local mode
+    min_parts = max(2, sc.defaultParallelism * 2)
+    lines = sc.textFile(str(input_path), minPartitions=min_parts)
     edges = (
         lines.filter(is_valid_edge)
         .map(lambda s: s.split())
@@ -78,6 +88,8 @@ def main() -> int:
 
     # In-degree per node
     indegree = edges.reduceByKey(lambda a, b: a + b)
+    # Cache indegree since we use it for two actions (save + histogram)
+    indegree.persist(StorageLevel.MEMORY_ONLY)
 
     # Save indegree as TSV
     indegree.map(lambda kv: f"{kv[0]}\t{kv[1]}").saveAsTextFile(str(out_indegree))

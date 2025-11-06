@@ -42,14 +42,16 @@ if ($hasHadoop) {
     -input $input `
     -output "$outRoot/indegree" `
     -mapper "python scripts/hadoop/mapper_in_degree.py" `
-    -reducer "python scripts/hadoop/reducer_in_degree.py"
+    -reducer "python scripts/hadoop/reducer_in_degree.py" `
+    -combiner "python scripts/hadoop/reducer_in_degree.py"
 
   hadoop jar $streamJar `
     -D mapreduce.job.reduces=1 `
     -input "$outRoot/indegree" `
     -output "$outRoot/distribution" `
     -mapper "python scripts/hadoop/mapper_histogram.py" `
-    -reducer "python scripts/hadoop/reducer_histogram.py"
+    -reducer "python scripts/hadoop/reducer_histogram.py" `
+    -combiner "python scripts/hadoop/reducer_histogram.py"
 } else {
   Write-Warning "Hadoop or Streaming JAR not found. Running local fallback to mimic Hadoop outputs."
   python scripts/hadoop/local_hadoop_fallback.py --input $input --out $outRoot
