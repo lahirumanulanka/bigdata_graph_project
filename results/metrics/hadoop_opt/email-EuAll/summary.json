@@ -1,24 +1,3 @@
-{
-  "system": "hadoop_opt",
-  "dataset": "email-EuAll",
-  "start_epoch": 1762418362.2107723,
-  "end_epoch": 1762418363.2422972,
-  "elapsed_sec": 1.0315239999908954,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 54.8,
-  "max_mem_used_mb": 14483.28515625,
-  "disk_read_delta_bytes": 4096,
-  "disk_write_delta_bytes": 1456640,
-  "net_sent_delta_bytes": 1755,
-  "net_recv_delta_bytes": 603,
-  "samples": 2,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/hadoop/run_hadoop_job.ps1",
-    "-Dataset",
-    "email-EuAll"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:b2a2350de22cfaaad231888a29c446d4600ff6a1f9092423618e7daba5459786
+size 593

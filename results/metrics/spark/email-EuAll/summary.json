@@ -1,24 +1,3 @@
-{
-  "system": "spark",
-  "dataset": "email-EuAll",
-  "start_epoch": 1762412755.7087693,
-  "end_epoch": 1762412768.897582,
-  "elapsed_sec": 13.18881249986589,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 63.9,
-  "max_mem_used_mb": 14854.41015625,
-  "disk_read_delta_bytes": 465920,
-  "disk_write_delta_bytes": 15015936,
-  "net_sent_delta_bytes": 26003,
-  "net_recv_delta_bytes": 34154,
-  "samples": 14,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/spark/run_spark_job.ps1",
-    "-Dataset",
-    "email-EuAll"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:1b3b629afd11689cf35feb2651ca5ca1b330d889ca34c9367af4ed9b07b6f5a8
+size 591

@@ -1,24 +1,3 @@
-{
-  "system": "spark_opt",
-  "dataset": "web-BerkStan",
-  "start_epoch": 1762417608.2598083,
-  "end_epoch": 1762417618.4381757,
-  "elapsed_sec": 10.178366899956018,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 73.6,
-  "max_mem_used_mb": 14833.02734375,
-  "disk_read_delta_bytes": 2269184,
-  "disk_write_delta_bytes": 50141696,
-  "net_sent_delta_bytes": 321549,
-  "net_recv_delta_bytes": 203543,
-  "samples": 11,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/spark/run_spark_job.ps1",
-    "-Dataset",
-    "web-BerkStan"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:5831b30c38754a2f01c3306fe3e1037194d17802f4d3566baea823d305378196
+size 602

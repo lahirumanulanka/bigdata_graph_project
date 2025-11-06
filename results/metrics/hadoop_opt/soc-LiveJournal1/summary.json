@@ -1,24 +1,3 @@
-{
-  "system": "hadoop_opt",
-  "dataset": "soc-LiveJournal1",
-  "start_epoch": 1762418406.4423501,
-  "end_epoch": 1762418489.3324342,
-  "elapsed_sec": 82.89008350018412,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 76.5,
-  "max_mem_used_mb": 14964.41015625,
-  "disk_read_delta_bytes": 1110016,
-  "disk_write_delta_bytes": 73986048,
-  "net_sent_delta_bytes": 361552,
-  "net_recv_delta_bytes": 718217,
-  "samples": 83,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/hadoop/run_hadoop_job.ps1",
-    "-Dataset",
-    "soc-LiveJournal1"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:4953d0d2844fda0ca8c40c3e2bc03cc1556776edd77853838462184bfa891ed5
+size 612

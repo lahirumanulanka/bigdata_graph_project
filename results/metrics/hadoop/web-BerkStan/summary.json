@@ -1,24 +1,3 @@
-{
-  "system": "hadoop",
-  "dataset": "web-BerkStan",
-  "start_epoch": 1762412886.6477509,
-  "end_epoch": 1762412895.7901492,
-  "elapsed_sec": 9.142398199997842,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 75.0,
-  "max_mem_used_mb": 14391.6953125,
-  "disk_read_delta_bytes": 6139392,
-  "disk_write_delta_bytes": 21074944,
-  "net_sent_delta_bytes": 79171,
-  "net_recv_delta_bytes": 148665,
-  "samples": 10,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/hadoop/run_hadoop_job.ps1",
-    "-Dataset",
-    "web-BerkStan"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:ea1fbefe3837b3f4901671f7d1952862cf78dca2ec197bd2b60a7c4e3ce39396
+size 598

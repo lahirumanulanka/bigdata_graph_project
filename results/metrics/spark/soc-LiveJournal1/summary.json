@@ -1,24 +1,3 @@
-{
-  "system": "spark",
-  "dataset": "soc-LiveJournal1",
-  "start_epoch": 1762412788.8354437,
-  "end_epoch": 1762412883.9850335,
-  "elapsed_sec": 95.14958989992738,
-  "avg_cpu_percent": null,
-  "peak_cpu_percent": 70.2,
-  "max_mem_used_mb": 14999.7734375,
-  "disk_read_delta_bytes": 24822784,
-  "disk_write_delta_bytes": 77675520,
-  "net_sent_delta_bytes": 294170,
-  "net_recv_delta_bytes": 556851,
-  "samples": 95,
-  "cmd": [
-    "powershell.exe",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    "scripts/spark/run_spark_job.ps1",
-    "-Dataset",
-    "soc-LiveJournal1"
-  ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:5db828a7ecd129ec5b705e13fa85a01e9f7dc54c94bd42f960f020a5eb7707ae
+size 605
