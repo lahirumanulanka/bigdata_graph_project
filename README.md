@@ -128,3 +128,22 @@ See the `docs/` folder for comparative write-ups:
 - `docs/performance.md` — metrics, plots, and analysis
 - `docs/system-design.md` — implementation details and trade-offs
 
+## One-command runner
+
+You can run the entire pipeline (deps → experiments → validation → plots → scaling → optimized runs) with one command:
+
+```
+python scripts/main.py
+```
+
+Options:
+
+- Choose datasets:
+	- `python scripts/main.py --datasets email-EuAll web-BerkStan`
+- Skip optimized runs:
+	- `python scripts/main.py --no-optimized`
+- Run specific steps (in order):
+	- `python scripts/main.py --steps deps experiments validate plots-distribution plots-metrics sizes plots-scaling`
+- Dry run (print commands only):
+	- `python scripts/main.py --dry-run`
+
