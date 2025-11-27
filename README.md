@@ -1,97 +1,92 @@
-# In-degree Distribution with Hadoop (MapReduce) and Spark
+# Hadoop vs. Spark: A Project on In-Degree Distribution
 
-This project computes per-node in-degree and the in-degree distribution for large directed graphs using two separate implementations:
+This was a university project where I explored how to calculate the in-degree for nodes in large graphs. I built two versions to compare them:
 
-- Apache Spark (PySpark)
-- Apache Hadoop (MapReduce via Hadoop Streaming)
+- One using **Apache Spark** (with PySpark).
+- Another using **Apache Hadoop** (with MapReduce Streaming).
 
-It runs on Windows using local mode for Spark and Hadoop. If Hadoop is not installed, a local fallback produces the same outputs in the expected Hadoop folder structure.
+Everything is set up to run locally on a Windows machine. If you don't have Hadoop installed, don't worry! I wrote a simple Python script that mimics the Hadoop output, so you can still run everything.
 
-## Data
+## The Data
 
-Place SNAP-like edge list files under `data/raw/` (already provided in this repo):
+The datasets are from the SNAP collection and are already included in the `data/raw/` folder:
 
-- `data/raw/email-EuAll.txt`
-- `data/raw/web-BerkStan.txt`
-- `data/raw/soc-LiveJournal1.txt`
+- `email-EuAll.txt`
+- `web-BerkStan.txt`
+- `soc-LiveJournal1.txt`
 
-Each file is a whitespace-separated edge list with optional comment lines starting with `#`.
+They are just simple text files where each line represents an edge (`source_node destination_node`). My code is set up to ignore any lines that start with a `#` comment.
 
-## Quick start (Windows PowerShell)
+## Getting Started (for Windows PowerShell)
 
-Prerequisites:
+Here’s how to get everything running.
 
-- Python 3.8+
-- Java 8+ (required by PySpark)
-- Optional: Hadoop installed (for true Hadoop Streaming runs); otherwise a local fallback will be used.
+**What you'll need:**
 
-Steps:
+- Python 3.8 or newer
+- Java 8+ (PySpark needs this to work)
+- **Optional:** A proper Hadoop installation. If you don't have it, my fallback script will take over.
 
-1) Install Python dependencies
+**Steps:**
 
-```
-python -m pip install -r requirements.txt
-```
+1.  **Install the Python packages:**
 
-2) Run experiments on three datasets (Spark + Hadoop)
+    ```
+    python -m pip install -r requirements.txt
+    ```
 
-```
-pwsh scripts/run_experiments.ps1
-```
+2.  **Run all the experiments:**
 
-This will write outputs to:
+    This one script runs both the Spark and Hadoop jobs for all three datasets.
 
-- Spark: `results/spark/<dataset>/{indegree,distribution}/part-*`
-- Hadoop: `results/hadoop/<dataset>/{indegree,distribution}/part-r-00000`
+    ```
+    pwsh scripts/run_experiments.ps1
+    ```
 
-If Hadoop is not present, the script will run a local fallback to generate the Hadoop-style outputs.
+    The results will be saved in these folders:
+    -   **Spark:** `results/spark/<dataset>/`
+    -   **Hadoop:** `results/hadoop/<dataset>/`
 
-3) Validate and plot (optional)
+3.  **Check the results and make some plots (Optional):**
 
-```
-python scripts/validate_results.py
-python scripts/plot_distributions.py
-```
+    I wrote a couple of scripts to validate the outputs and plot the in-degree distributions.
 
-Plots are written to `results/plots`.
+    ```
+    python scripts/validate_results.py
+    python scripts/plot_distributions.py
+    ```
 
-## Performance metrics and plots
+    You can find the plots in the `results/plots` folder.
 
-While running `scripts/run_experiments.ps1`, the pipeline measures process-level performance for each system (Spark and Hadoop or their local fallbacks):
+## Performance Metrics & Plots
 
-- CPU usage (%), memory usage (MB) over time
-- Disk I/O and network bytes over time (derived as rates)
-- Summary totals and elapsed time
+While the experiments are running, a script is also measuring how much CPU, memory, disk, and network each process is using. All that data gets saved under `results/metrics/<system>/<dataset>/`.
 
-Artifacts are saved under `results/metrics/<system>/<dataset>/`:
+- `timeseries.csv`: Contains the raw metrics collected every second.
+- `summary.json`: Has the final totals, like total time taken.
 
-- `timeseries.csv`: sampled metrics (1 Hz)
-- `summary.json`: totals and command info
-
-After a run, generate comparison plots with:
+To see a visual comparison, you can generate plots from this data:
 
 ```
 python scripts/plot_metrics.py
 ```
 
-The following figures are written to `results/metrics/plots/` for each dataset:
+This will create a few comparison charts in `results/metrics/plots/` for each dataset, which is pretty useful for seeing the performance differences.
 
-- `<dataset>_cpu_mem.png`: CPU% and Memory over time
-- `<dataset>_io_net.png`: Disk and Network MB/s over time
-- `<dataset>_summary.png`: Elapsed time, total disk (GB), total network (MB)
+## Want to Run Jobs Manually?
 
-## Running jobs manually
+If you want to run a single job instead of all of them, here’s how.
 
-Spark (example for `email-EuAll`):
+**Spark** (this example is for the `email-EuAll` dataset):
 
 ```
 python scripts/spark/indegree_distribution.py --dataset email-EuAll
 ```
 
-Hadoop Streaming (requires Hadoop and streaming jar):
+**Hadoop Streaming** (you'll need Hadoop installed for this):
 
 ```
-# Job 1: indegree per node
+# First job: Calculate in-degree for each node
 hadoop jar %HADOOP_HOME%\share\hadoop\tools\lib\hadoop-streaming-*.jar ^
 	-D mapreduce.job.reduces=1 ^
 	-input data/raw/email-EuAll.txt ^
@@ -99,7 +94,7 @@ hadoop jar %HADOOP_HOME%\share\hadoop\tools\lib\hadoop-streaming-*.jar ^
 	-mapper "python scripts/hadoop/mapper_in_degree.py" ^
 	-reducer "python scripts/hadoop/reducer_in_degree.py"
 
-# Job 2: distribution
+# Second job: Create a histogram from the in-degrees
 hadoop jar %HADOOP_HOME%\share\hadoop\tools\lib\hadoop-streaming-*.jar ^
 	-D mapreduce.job.reduces=1 ^
 	-input results/hadoop/email-EuAll/indegree ^
@@ -108,42 +103,42 @@ hadoop jar %HADOOP_HOME%\share\hadoop\tools\lib\hadoop-streaming-*.jar ^
 	-reducer "python scripts/hadoop/reducer_histogram.py"
 ```
 
-If Hadoop is missing, you can compute the same outputs locally:
+**If you don't have Hadoop**, you can use my fallback script to get the same output:
 
 ```
 python scripts/hadoop/local_hadoop_fallback.py --input data/raw/email-EuAll.txt --out results/hadoop/email-EuAll
 ```
 
-## Notes
+## A Few Notes
 
-- The parsers ignore comment lines (`# ...`) and expect at least two whitespace-separated columns per edge: `<src> <dst>`.
-- Spark runs in local mode by default via PySpark; ensure Java is installed and on PATH.
-- Hadoop runs also work in local mode if you configure Hadoop accordingly; the provided PowerShell runner attempts to locate the Hadoop streaming JAR automatically.
+- The code ignores any lines in the data files that start with `#`.
+- Spark runs in "local mode," which is why you need Java installed.
+- The Hadoop jobs are also set up for local mode. The PowerShell script tries to find your Hadoop installation automatically.
 
-## Documentation
+## Project Documentation
 
-See the `docs/` folder for comparative write-ups:
+I wrote up my findings in the `docs/` folder. Check them out for a deeper dive!
 
-- `docs/correctness.md` — validation approach and results
-- `docs/performance.md` — metrics, plots, and analysis
-- `docs/system-design.md` — implementation details and trade-offs
+- `docs/correctness.md` — How I checked if the results were right.
+- `docs/performance.md` — My analysis of the performance metrics and plots.
+- `docs/system-design.md` — Details on how I built everything and the choices I made.
 
-## One-command runner
+## The "Just Run Everything" Command
 
-You can run the entire pipeline (deps → experiments → validation → plots → scaling → optimized runs) with one command:
+I made a main script that runs the entire pipeline for you, from installing dependencies to running experiments and generating all the plots.
 
 ```
 python scripts/main.py
 ```
 
-Options:
+You can also pass it some options:
 
-- Choose datasets:
-	- `python scripts/main.py --datasets email-EuAll web-BerkStan`
-- Skip optimized runs:
-	- `python scripts/main.py --no-optimized`
-- Run specific steps (in order):
-	- `python scripts/main.py --steps deps experiments validate plots-distribution plots-metrics sizes plots-scaling`
-- Dry run (print commands only):
-	- `python scripts/main.py --dry-run`
+- **Choose specific datasets:**
+  `python scripts/main.py --datasets email-EuAll web-BerkStan`
+- **Skip the optimized runs:**
+  `python scripts/main.py --no-optimized`
+- **Run only certain steps:**
+  `python scripts/main.py --steps deps experiments validate`
+- **See what commands it will run without actually running them:**
+  `python scripts/main.py --dry-run`
 
